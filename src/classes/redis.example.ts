@@ -1,11 +1,12 @@
 import { createClient } from "redis";
+import { EncryptionHandler } from "./utils/encryption-handler";
 
 interface ISetRedisStateParams {
   key: string | Buffer;
   body: number | string | Buffer;
 }
 
-export class RedisCache {
+export class RedisCache extends EncryptionHandler {
   private readonly REDIS_HOST = process.env.REDIS_HOST;
   private readonly REDIS_PORT = process.env.REDIS_PORT;
 
@@ -16,15 +17,26 @@ export class RedisCache {
     },
   });
 
-  public getRedisState(key: string) {
-    console.log("get Redis");
+  constructor() {
+    super()
     this.initClient.connect();
-    return this.initClient.get(key);
   }
 
-  public setRedisState({ key, body }: ISetRedisStateParams) {
+  public async getRedisState(key: string) {
+    console.log("get Redis");
+    
+    const SHA = this.generateSHA(key)
+    const f = await this.initClient.get(SHA);
+    if (f === null) return
+    const d = await this.decrypt(f)
+    return d;
+  }
+
+  public async setRedisState({ key, body }: ISetRedisStateParams) {
     console.log("set Redis");
-    this.initClient.connect();
-    return this.initClient.set(key, JSON.stringify(body), { EX: 60 });
+    const SHA = this.generateSHA(key.toString())
+    const encryptBody = await this.encrypt(body)
+    return this.initClient.set(SHA, encryptBody, { EX: 60 });
+    
   }
 }

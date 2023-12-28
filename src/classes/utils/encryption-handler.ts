@@ -27,8 +27,8 @@ export class EncryptionHandler {
   async encrypt<T>(payload: T) {
     if (!this.signatureKey)
       throw new Error('PLEASE CREATE A KEY TO ENCRYPT 🙂');
-
     const input = JSON.stringify(payload);
+    console.log(input)
     const encrypted = await JWE.createEncrypt(
       { format: 'compact' } /** Use Compact Serialization */,
       this.signatureKey

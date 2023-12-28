@@ -22,7 +22,7 @@ const getCities = async (
   try {
     const redisReply = await redisClient.getRedisState("cities");
     if (redisReply) {
-      return res.json(JSON.parse(redisReply));
+      return res.json(redisReply as ICity[]);
     }
 
     const apiResponse = await axios.get(
