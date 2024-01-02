@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "redis": "docker exec -it redis-stack redis-cli"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.15.0",
