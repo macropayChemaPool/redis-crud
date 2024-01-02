@@ -1,4 +1,4 @@
-import { RedisCache } from "@/classes/redis.example";
+import { RedisCacheHandler } from "@/classes/utils/redis-cache-handler";
 import serviceGetCities from "@/services/back/serviceGetCities";
 import axios from "axios";
 import type { NextApiRequest, NextApiResponse } from "next";
@@ -17,10 +17,10 @@ const getCities = async (
   req: NextApiRequest,
   res: NextApiResponse<ICity[] | []>
 ) => {
-  const redisClient = new RedisCache();
-
+  const redisClient = new RedisCacheHandler();
+  const redisKey = "municipalities";
   try {
-    const redisReply = await redisClient.getRedisState("cities");
+    const redisReply = await redisClient.getRedisState(redisKey);
     if (redisReply) {
       return res.json(redisReply as ICity[]);
     }
@@ -37,12 +37,12 @@ const getCities = async (
       label: item?.name,
     }));
 
-    redisClient.setRedisState({
-      key: "cities",
+    await redisClient.setRedisState({
+      key: redisKey,
       body: cities,
     });
 
-    return res.status(200).json(cities);
+    return res.status(200).json(cities as ICity[]);
   } catch (error: any) {
     console.log(error);
     return res.status(400).json([]);
