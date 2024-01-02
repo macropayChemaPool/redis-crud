@@ -1,6 +1,6 @@
-import { RedisCache } from "./redis.example";
+import { RedisCacheHandler } from "./utils/redis-cache-handler";
 
-export class BaseController extends RedisCache {
+export class BaseController extends RedisCacheHandler<string> {
   onInit() {
     console.log("Method to init")
   }
