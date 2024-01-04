@@ -8,6 +8,16 @@ export class EncryptionHandler {
     this.generateKey();
   }
 
+  
+  private isJSON(value: string | null) {
+    try {
+      JSON.parse(value ?? '');
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
+
   private async generateKey() {
     const SECRET_SIGNATURE = process.env.SECRET_SIGNATURE;
 
@@ -27,8 +37,8 @@ export class EncryptionHandler {
   async encrypt<T>(payload: T) {
     if (!this.signatureKey)
       throw new Error('PLEASE CREATE A KEY TO ENCRYPT 🙂');
-    const input = JSON.stringify(payload);
-    console.log(input)
+
+    const input = JSON.stringify(payload).normalize("NFD").replace(/[\u0300-\u036f]/g, "");
     const encrypted = await JWE.createEncrypt(
       { format: 'compact' } /** Use Compact Serialization */,
       this.signatureKey
@@ -46,12 +56,23 @@ export class EncryptionHandler {
     const { payload } = await JWE.createDecrypt(this.signatureKey).decrypt(
       encrypted
     );
-
     return JSON.parse(payload.toString()) as T;
   }
 
-  generateSHA(value: string) {
-    return createHash('sha256').update(value).digest('hex');
+  async isEncrypted(value: string | null) {
+    try {
+      await this.decrypt(value ?? '');
+      console.log('IS ENCRYPTED 🥵');
+      return true;
+    } catch (error) {
+      console.log('IS NOT ENCRYPTED 🙂');
+      return false;
+    }
+  }
+
+  generateSHA<T>(value: T) {
+    const valueToString = JSON.stringify(value);
+    return createHash('sha256').update(valueToString).digest('hex');
   }
 }
 
