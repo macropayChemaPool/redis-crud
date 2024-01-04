@@ -6,6 +6,7 @@ export const useCities = <TRes>() => {
     queryKey: ["useCampaigns"],
     queryFn: serviceGetCities,
   });
+
   return {
     isLoadingCities: result?.isPending,
     cities: result?.data ?? [],

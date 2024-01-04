@@ -13,23 +13,6 @@ const postUser = async (
   console.log(req.body);
 
   try {
-    // const redisReply = await redisClient.getRedisState("cities");
-    // if (redisReply) {
-    //   return res.json(redisReply as ICity[]);
-    // }
-
-    // const apiResponse = await axios.get(
-    //   "https://sepomex-sahfer.wl.r.appspot.com/api/municipios"
-    // );
-
-    // const { entities } = await serviceGetCities(req);
-    // console.log(entities);
-
-    // const cities = apiResponse?.data?.entities?.map((item: ICity) => ({
-    //   value: item?.id,
-    //   label: item?.name,
-    // }));
-
     redisClient.setRedisState({
       // key: "users",
       body: req.body,

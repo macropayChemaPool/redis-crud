@@ -6,8 +6,6 @@ import { useCities } from "@/queryHooks/cities";
 export default function Home() {
   const { cities, isLoadingCities } = useCities();
 
-  console.log("cities", cities);
-
   return (
     <Row justify="center">
       <Col span={8}>

@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "redis": "docker exec -it redis-stack redis-cli",
-    "redis-c": "redis-commander"
+    "redis-c": "redis-commander",
+    "prepare:husky": "husky install"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.15.0",
@@ -21,6 +22,7 @@
     "node-jose": "2.2.0",
     "react": "^18",
     "react-dom": "^18",
+    "react-hook-form": "^7.49.2",
     "redis": "^4.6.12",
     "uuid": "9.0.0"
   },
@@ -31,6 +33,7 @@
     "@types/uuid": "9.0.0",
     "eslint": "^8",
     "eslint-config-next": "14.0.4",
+    "husky": "8.0.3",
     "typescript": "^5"
   }
 }

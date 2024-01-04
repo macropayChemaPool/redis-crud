@@ -13,8 +13,10 @@ interface IRedisSubNodeData<T> {
 export class RedisCacheHandler<T> extends EncryptionHandler {
   private readonly REDIS_HOST = process.env.REDIS_HOST;
   private readonly REDIS_PORT = process.env.REDIS_PORT;
+  private readonly REDIS_PASS = process.env.REDIS_PASS;
 
   private readonly initClient = createClient({
+    password: this.REDIS_PASS,
     socket: {
       host: this.REDIS_HOST,
       port: this.REDIS_PORT,
@@ -63,9 +65,9 @@ export class RedisCacheHandler<T> extends EncryptionHandler {
 
     if (isEncrypted) {
       const result = await this.decrypt<T>(entryPoint ?? "");
-      return result;
+      return JSON.parse(result as string);
     }
-    return entryPoint as T;
+    return JSON.parse(entryPoint as string) as T;
   }
 
   public async setRedisState({

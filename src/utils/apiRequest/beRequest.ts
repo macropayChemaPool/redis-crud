@@ -48,7 +48,7 @@ export const beRequest = <TRes, TData = {}>(
   const params = method === "GET" ? data : undefined;
   return axios.request<
     IResponseAPI<TRes>,
-    AxiosResponse<IResponseAPI<TRes>, TData>,
+    AxiosResponse<TRes, TData>,
     TData
   >({
     method,

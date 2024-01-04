@@ -1,6 +1,7 @@
 export interface IUserForm {
   userName: string;
   nickName: string;
+  city: string;
 }
 
 export interface ICity {
@@ -11,4 +12,9 @@ export interface ICity {
   key: string;
   name: string;
   updatedOn: string;
+}
+
+export interface ISelectOptions {
+  value: string;
+  label: string;
 }
