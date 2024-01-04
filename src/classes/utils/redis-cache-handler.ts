@@ -1,15 +1,13 @@
 import { createClient } from 'redis';
 import { EncryptionHandler } from './encryption-handler';
 
-type RedisCacheKey = string;
-
-interface ISetRedisStateParams {
-  key: RedisCacheKey;
-  body: number | string;
+interface ISetRedisStateParams<T> {
+  body: T;
+  requiredEncryption?: boolean;
 }
 
 interface IRedisSubNodeData<T> {
-  [x: string]: T | unknown
+  [x: string]: T;
 }
 
 export class RedisCacheHandler<T> extends EncryptionHandler {
@@ -28,62 +26,60 @@ export class RedisCacheHandler<T> extends EncryptionHandler {
     this.initClient.connect();
   }
 
-  private getRootNode(key: RedisCacheKey) {
+  private getRootNode(key: string) {
     return this.initClient.get(key);
   }
 
-  private getSHA() {
-    const SHA = "53f25148803d5a4f7fc46a7094a4bb787db5751299eb3f201d7a95d0f6d7b55b"
-    return SHA;
-  }
-
-  private jsonParse(value: string | null): IRedisSubNodeData<T> {
+  private async getEntryPoint(key: string) {
     try {
-      const parsed = JSON.parse(value ?? '')
-      return parsed;
-    } catch (error) {
-      return {}
-    }
-  }
-
-  private async getEntryPoint() {
-    try {
-      const SHA = this.getSHA();
-      const entryPoint = await this.getRootNode(SHA);
-      return this.jsonParse(entryPoint);
+      const entryPoint = await this.getRootNode(key);
+      return entryPoint;
     } catch (error) {
       throw new Error('Not found entry point');
     }
   }
 
-  private setEntryPoint(nodes: IRedisSubNodeData<T>) {
-    const SHA = this.getSHA();
-    const value = JSON.stringify(nodes)
-    this.initClient.set(SHA, value, { EX: 60 * 60 })
+  private setEntryPoint(key: string, data: T | string) {
+    const value = typeof data === 'string' ? data : JSON.stringify(data);
+    this.initClient.set(key, value, { EX: 60 * 60 });
   }
 
-  private getSubNode(key: RedisCacheKey, entryPoint: IRedisSubNodeData<T>) {
+  private getSubNode(key: string, entryPoint: IRedisSubNodeData<T>) {
     if (!(key in entryPoint)) return null;
-    return entryPoint[key] as T;
+    return entryPoint[key];
   }
 
-  private setSubNode(key: RedisCacheKey, entryPoint: IRedisSubNodeData<T>, body: number | string) {
-    if (!(key in entryPoint)) {
-      entryPoint[key] = body
+  private setSubNode(
+    key: string,
+    entryPoint: IRedisSubNodeData<T>,
+    body: T
+  ) {
+    const object = { ...entryPoint };
+    if (!(key in object)) {
+      object[key] = body;
     }
-    return entryPoint;
+    return object;
   }
 
-  public async getRedisState(key: RedisCacheKey) {
-    const entryPoint = await this.getEntryPoint();
-    const node = this.getSubNode(key, entryPoint);
-    return node;
+  public async getRedisState<T>(key: string): Promise<T> {
+    const entryPoint = await this.getEntryPoint(key);
+    const isEncrypted = await this.isEncrypted(entryPoint);
+
+    if (isEncrypted) {
+      const result = await this.decrypt<T>(entryPoint ?? '');
+      return result;
+    }
+    return entryPoint as T;
   }
 
-  public async setRedisState({ key, body }: ISetRedisStateParams) {
-    const entryPoint = await this.getEntryPoint();
-    // const encryptBody = await this.encrypt(body);
-    const nodes = this.setSubNode(key, entryPoint, body);
-    this.setEntryPoint(nodes)
+  public async setRedisState({
+    body,
+    requiredEncryption = false,
+  }: ISetRedisStateParams<T>): Promise<string> {
+    const SHA = this.generateSHA(body);
+    const encryptBody = await this.encrypt(body);
+    const data = requiredEncryption ? encryptBody : body;
+    this.setEntryPoint(SHA, data);
+    return SHA;
   }
 }

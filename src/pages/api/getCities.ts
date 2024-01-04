@@ -18,9 +18,9 @@ const getCities = async (
   res: NextApiResponse<ICity[] | []>
 ) => {
   const redisClient = new RedisCacheHandler();
-  const redisKey = "municipalities";
+  const redisKey = "75f9b0d71bba7461ca9b5997d7b5e2846129ee2020dc55820bac1b14855db395";
   try {
-    const redisReply = await redisClient.getRedisState(redisKey);
+    const redisReply = await redisClient.getRedisState<ICity[]>(redisKey);
     if (redisReply) {
       return res.json(redisReply as ICity[]);
     }
@@ -37,9 +37,10 @@ const getCities = async (
       label: item?.name,
     }));
 
-    await redisClient.setRedisState({
-      key: redisKey,
+    const REDIS_KEY = await redisClient.setRedisState({
       body: cities,
+      // body: cities,
+      requiredEncryption: true,
     });
 
     return res.status(200).json(cities as ICity[]);
