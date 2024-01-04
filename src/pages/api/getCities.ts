@@ -40,7 +40,7 @@ const getCities = async (
     const REDIS_KEY = await redisClient.setRedisState({
       body: cities,
       // body: cities,
-      requiredEncryption: true,
+      encrypted: true,
     });
 
     return res.status(200).json(cities as ICity[]);

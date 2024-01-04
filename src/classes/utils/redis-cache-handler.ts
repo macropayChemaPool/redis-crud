@@ -1,9 +1,9 @@
-import { createClient } from 'redis';
-import { EncryptionHandler } from './encryption-handler';
+import { createClient } from "redis";
+import { EncryptionHandler } from "./encryption-handler";
 
 interface ISetRedisStateParams<T> {
   body: T;
-  requiredEncryption?: boolean;
+  encrypted?: boolean;
 }
 
 interface IRedisSubNodeData<T> {
@@ -35,12 +35,12 @@ export class RedisCacheHandler<T> extends EncryptionHandler {
       const entryPoint = await this.getRootNode(key);
       return entryPoint;
     } catch (error) {
-      throw new Error('Not found entry point');
+      throw new Error("Not found entry point");
     }
   }
 
   private setEntryPoint(key: string, data: T | string) {
-    const value = typeof data === 'string' ? data : JSON.stringify(data);
+    const value = typeof data === "string" ? data : JSON.stringify(data);
     this.initClient.set(key, value, { EX: 60 * 60 });
   }
 
@@ -49,11 +49,7 @@ export class RedisCacheHandler<T> extends EncryptionHandler {
     return entryPoint[key];
   }
 
-  private setSubNode(
-    key: string,
-    entryPoint: IRedisSubNodeData<T>,
-    body: T
-  ) {
+  private setSubNode(key: string, entryPoint: IRedisSubNodeData<T>, body: T) {
     const object = { ...entryPoint };
     if (!(key in object)) {
       object[key] = body;
@@ -66,7 +62,7 @@ export class RedisCacheHandler<T> extends EncryptionHandler {
     const isEncrypted = await this.isEncrypted(entryPoint);
 
     if (isEncrypted) {
-      const result = await this.decrypt<T>(entryPoint ?? '');
+      const result = await this.decrypt<T>(entryPoint ?? "");
       return result;
     }
     return entryPoint as T;
@@ -74,12 +70,16 @@ export class RedisCacheHandler<T> extends EncryptionHandler {
 
   public async setRedisState({
     body,
-    requiredEncryption = false,
+    encrypted = false,
   }: ISetRedisStateParams<T>): Promise<string> {
     const SHA = this.generateSHA(body);
-    const encryptBody = await this.encrypt(body);
-    const data = requiredEncryption ? encryptBody : body;
-    this.setEntryPoint(SHA, data);
+    if (encrypted) {
+      const encryptBody = await this.encrypt(body);
+      this.setEntryPoint(SHA, encryptBody);
+      return SHA;
+    }
+
+    this.setEntryPoint(SHA, body);
     return SHA;
   }
 }

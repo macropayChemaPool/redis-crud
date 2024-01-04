@@ -31,7 +31,7 @@ const postUser = async (
     // }));
 
     redisClient.setRedisState({
-      key: "users",
+      // key: "users",
       body: req.body,
     });
 
