@@ -1,21 +1,44 @@
 "use client";
 
-import Image from "next/image";
-import styles from "./page.module.css";
-import { Button, Col, Flex, Input, Row } from "antd";
+import { Tabs } from "antd";
+import { IUserForm } from "@/interfaces";
+import { useMutation } from "@tanstack/react-query";
+import servicePostUser from "@/services/front/servicePostUser";
+import CreateContainer from "@/containers/create";
+import EditContainer from "@/containers/edit";
+import { useCities } from "@/queryHooks/cities";
 
-export default function Home() {
+const Create = () => {
+  const { cities } = useCities();
+  const { mutate } = useMutation({
+    mutationKey: ["mutateUser"],
+    mutationFn: (data: IUserForm) => servicePostUser(data),
+  });
+
+  const onSubmit = (data: IUserForm) => {
+    console.log(data);
+    mutate(data);
+  };
+
   return (
-    <Flex gap="middle" align="center" vertical>
-      <Col>
-        <Input placeholder="Basic usage" />
-      </Col>
-      <Col>
-        <Input placeholder="Basic usage" />
-      </Col>
-      <Col>
-        <Button type="primary">Primary Button</Button>
-      </Col>
-    </Flex>
+    <Tabs
+      defaultActiveKey="1"
+      type="card"
+      size="middle"
+      items={[
+        {
+          label: "Create",
+          key: "create",
+          children: <CreateContainer cities={cities} onSubmit={onSubmit} />,
+        },
+        {
+          label: "Data",
+          key: "read",
+          children: <EditContainer />,
+        },
+      ]}
+    />
   );
-}
+};
+
+export default Create;
