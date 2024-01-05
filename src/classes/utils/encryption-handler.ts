@@ -34,7 +34,7 @@ export class EncryptionHandler {
     });
   }
 
-  async encrypt<T>(payload: T) {
+  protected async encrypt<T>(payload: T) {
     if (!this.signatureKey)
       throw new Error('PLEASE CREATE A KEY TO ENCRYPT 🙂');
 
@@ -49,7 +49,7 @@ export class EncryptionHandler {
     return encrypted;
   }
 
-  async decrypt<T>(encrypted: string) {
+  protected async decrypt<T>(encrypted: string) {
     if (!this.signatureKey)
       throw new Error('PLEASE CREATE A KEY TO DECRYPT 🙂');
 
@@ -59,7 +59,7 @@ export class EncryptionHandler {
     return JSON.parse(payload.toString()) as T;
   }
 
-  async isEncrypted(value: string | null) {
+  protected async isEncrypted(value: string | null) {
     try {
       await this.decrypt(value ?? '');
       console.log('IS ENCRYPTED 🥵');
@@ -70,7 +70,7 @@ export class EncryptionHandler {
     }
   }
 
-  generateSHA<T>(value: T) {
+  protected generateSHA<T>(value: T) {
     const valueToString = JSON.stringify(value);
     return createHash('sha256').update(valueToString).digest('hex');
   }
