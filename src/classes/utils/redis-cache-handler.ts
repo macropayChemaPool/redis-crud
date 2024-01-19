@@ -84,4 +84,20 @@ export class RedisCacheHandler<T> extends EncryptionHandler {
     this.setEntryPoint(SHA, body);
     return SHA;
   }
+
+  public async statusHost<T>(): Promise<T> {
+    return new Promise((resolve, reject) => {
+      this.initClient.on("error", (err) => {
+        this.killRedis();
+        reject(err);
+      });
+      this.initClient.on("connect", () => {
+        resolve("success" as T);
+      });
+    });
+  }
+
+  public killRedis() {
+    this.initClient.disconnect();
+  }
 }

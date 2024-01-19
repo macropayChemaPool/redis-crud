@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 
 export const useCities = <TRes>() => {
   const result = useQuery({
-    queryKey: ["useCampaigns"],
+    queryKey: ["useCities"],
     queryFn: serviceGetCities,
   });
 

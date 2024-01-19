@@ -1,5 +1,5 @@
 // import type { NextApiRequest } from 'next';
-import { RedisCacheHandler } from './utils/redis-cache-handler';
+import { RedisCacheHandler } from "./utils/redis-cache-handler";
 
 type ServiceWithoutParams<T> = () => Promise<T>;
 // type ServiceWithRequest<T> = (req: NextApiRequest) => Promise<T>;
@@ -15,7 +15,7 @@ type ServiceFunction<T, S> = ServiceWithoutParams<T>;
 interface IReturnEntity<T> {
   /**
    * sha (`SHA`) response is the key to set on your cookies
-   * 
+   *
    * ***Example***
    * ```js
    * res.setHeader("Set-Cookie",`${YOUR_KEY}=${REDIS_KEY}; Secure; HttpOnly; SameSite=Lax; path=/`)
@@ -31,24 +31,33 @@ export class BaseService<T, S = unknown> {
   constructor(private service: ServiceFunction<T, S>) {}
 
   async getEntity(key: string): Promise<IReturnEntity<T>> {
-    const reply = await this.redisCacheHandler.getRedisState<T>(key);
-    console.log(reply)
-    if (reply) {
+    try {
+      await this.redisCacheHandler.statusHost();
+      const reply = await this.redisCacheHandler.getRedisState<T>(key);
+      if (reply) {
+        return {
+          sha: key,
+          entities: reply,
+        };
+      }
+
+      const entities = await this.service();
+      const REDIS_KEY = await this.redisCacheHandler.setRedisState({
+        body: entities,
+      });
+
       return {
-        sha: key,
-        entities: reply,
+        sha: REDIS_KEY,
+        entities,
+      };
+    } catch (error) {
+      const entities = await this.service();
+      this.redisCacheHandler.killRedis();
+
+      return {
+        sha: "",
+        entities,
       };
     }
-
-    const entities = await this.service();
-    const REDIS_KEY = await this.redisCacheHandler.setRedisState({
-      body: entities,
-    });
-
-    return {
-      sha: REDIS_KEY,
-      entities,
-    };
   }
 }
-

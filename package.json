@@ -9,31 +9,32 @@
     "lint": "next lint",
     "redis": "docker exec -it redis-stack redis-cli",
     "redis-c": "redis-commander",
-    "prepare:husky": "husky install"
+    "prepare:husky": "husky install",
+    "init-project": "bash ./init-project.sh"
   },
   "dependencies": {
-    "@tanstack/react-query": "^5.15.0",
-    "@tanstack/react-query-devtools": "^5.15.0",
-    "@tanstack/react-query-next-experimental": "^5.15.0",
+    "@tanstack/react-query": "5.15.0",
+    "@tanstack/react-query-devtools": "5.15.0",
+    "@tanstack/react-query-next-experimental": "5.15.0",
     "@types/node-jose": "1.1.13",
-    "antd": "^5.12.5",
-    "axios": "^1.6.2",
+    "antd": "5.12.5",
+    "axios": "1.6.4",
     "next": "14.0.4",
     "node-jose": "2.2.0",
-    "react": "^18",
-    "react-dom": "^18",
-    "react-hook-form": "^7.49.2",
-    "redis": "^4.6.12",
+    "react": "18",
+    "react-dom": "18",
+    "react-hook-form": "7.49.2",
+    "redis": "4.6.12",
     "uuid": "9.0.0"
   },
   "devDependencies": {
-    "@types/node": "^20",
-    "@types/react": "^18",
-    "@types/react-dom": "^18",
+    "@types/node": "20",
+    "@types/react": "18",
+    "@types/react-dom": "18",
     "@types/uuid": "9.0.0",
-    "eslint": "^8",
+    "eslint": "8",
     "eslint-config-next": "14.0.4",
     "husky": "8.0.3",
-    "typescript": "^5"
+    "typescript": "5"
   }
 }

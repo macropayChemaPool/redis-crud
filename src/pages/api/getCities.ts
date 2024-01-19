@@ -1,18 +1,18 @@
-import { BaseService } from '@/classes/base-service';
-import { ICity, ISelectOptions } from '@/interfaces';
-import serviceGetCities from '@/services/back/serviceGetCities';
-import type { NextApiRequest, NextApiResponse } from 'next';
+import { BaseService } from "@/classes/base-service";
+import { ICity, ISelectOptions } from "@/interfaces";
+import serviceGetCities from "@/services/back/serviceGetCities";
+import type { NextApiRequest, NextApiResponse } from "next";
 
 const getCities = async (
   req: NextApiRequest,
   res: NextApiResponse<ICity[] | ISelectOptions[] | []>
 ) => {
   try {
-    const cookieKey = `cities`
+    const cookieKey = `cities`;
     /** @type {*}
      * redisKey is the value on your cookie
      */
-    const redisKey = req.cookies[cookieKey] ?? '';
+    const redisKey = req.cookies[cookieKey] ?? "";
     const service = async () => {
       const { entities } = await serviceGetCities(req);
 
@@ -26,7 +26,7 @@ const getCities = async (
     const baseService = new BaseService(service);
     const { entities: cities, sha } = await baseService.getEntity(redisKey);
     console.log(sha);
-    res.setHeader('Set-Cookie', `${cookieKey}=${sha}`);
+    res.setHeader("Set-Cookie", `${cookieKey}=${sha}`);
 
     return res.status(200).json(cities);
   } catch (error: any) {
