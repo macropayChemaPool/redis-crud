@@ -65,7 +65,7 @@ export class RedisCacheHandler<T> extends EncryptionHandler {
 
     if (isEncrypted) {
       const result = await this.decrypt<T>(entryPoint ?? "");
-      return JSON.parse(result as string);
+      return result;
     }
     return JSON.parse(entryPoint as string) as T;
   }
@@ -99,5 +99,9 @@ export class RedisCacheHandler<T> extends EncryptionHandler {
 
   public killRedis() {
     this.initClient.disconnect();
+  }
+
+  public deleteKey(key: string) {
+    this.initClient.del(key);
   }
 }
