@@ -1,7 +1,4 @@
 import { RedisCacheHandler } from "@/classes/utils/redis-cache-handler";
-import { ICity } from "@/interfaces";
-import serviceGetCities from "@/services/back/serviceGetCities";
-import axios from "axios";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 const postUser = async (
@@ -14,7 +11,8 @@ const postUser = async (
 
   try {
     redisClient.setRedisState({
-      // key: "users",
+      idApi: "USERS",
+      idData: "USER001",
       body: req.body,
     });
 

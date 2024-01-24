@@ -7,12 +7,9 @@ const getCities = async (
   req: NextApiRequest,
   res: NextApiResponse<ICity[] | ISelectOptions[] | []>
 ) => {
+  const id_api = "API-MP-000";
+  const id_data = "USER001";
   try {
-    const cookieKey = `cities`;
-    /** @type {*}
-     * redisKey is the value on your cookie
-     */
-    const redisKey = req.cookies[cookieKey] ?? "";
     const service = async () => {
       const { entities } = await serviceGetCities(req);
 
@@ -23,10 +20,14 @@ const getCities = async (
       return cities;
     };
 
-    const baseService = new BaseService(service);
-    const { entities: cities, sha } = await baseService.getEntity(redisKey);
+    const baseService = new BaseService({
+      idApi: id_api,
+      idData: id_data,
+      service,
+    });
+    const { entities: cities, sha } = await baseService.getEntity();
+    console.log(cities);
     console.log(sha);
-    res.setHeader("Set-Cookie", `${cookieKey}=${sha}`);
 
     return res.status(200).json(cities);
   } catch (error: any) {

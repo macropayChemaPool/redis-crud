@@ -1,26 +1,10 @@
-// import type { NextApiRequest } from 'next';
 import { RedisCacheHandler } from "./utils/redis-cache-handler";
 
 type ServiceWithoutParams<T> = () => Promise<T>;
-// type ServiceWithRequest<T> = (req: NextApiRequest) => Promise<T>;
-// type ServiceWithRequestParams<T, S> = (
-//   req: NextApiRequest,
-//   params?: S
-// ) => Promise<T>;
 
 type ServiceFunction<T, S> = ServiceWithoutParams<T>;
-// | ServiceWithRequestParams<T, S>
-// | ServiceWithRequest<T>;
 
 interface IReturnEntity<T> {
-  /**
-   * sha (`SHA`) response is the key to set on your cookies
-   *
-   * ***Example***
-   * ```js
-   * res.setHeader("Set-Cookie",`${YOUR_KEY}=${REDIS_KEY}; Secure; HttpOnly; SameSite=Lax; path=/`)
-   * ```
-   */
   sha: string;
   entities: T;
 }
@@ -28,22 +12,36 @@ interface IReturnEntity<T> {
 export class BaseService<T, S = unknown> {
   private readonly redisCacheHandler = new RedisCacheHandler<T>();
 
-  constructor(private service: ServiceFunction<T, S>) {}
+  constructor(
+    private settings: {
+      idApi: string;
+      idData: string;
+      service: ServiceFunction<T, S>;
+      encrypted?: boolean;
+    }
+  ) {}
 
-  async getEntity(key: string): Promise<IReturnEntity<T>> {
+  async getEntity(): Promise<IReturnEntity<T>> {
+    const { idApi, idData } = this.settings;
     try {
       await this.redisCacheHandler.statusHost();
-      const reply = await this.redisCacheHandler.getRedisState<T>(key);
-      if (reply) {
+      const { sha, data } = await this.redisCacheHandler.getRedisState<T>(
+        idApi,
+        idData
+      );
+      if (data) {
         return {
-          sha: key,
-          entities: reply,
+          sha,
+          entities: data,
         };
       }
 
-      const entities = await this.service();
+      const entities = await this.settings.service();
       const REDIS_KEY = await this.redisCacheHandler.setRedisState({
+        idApi: this.settings.idApi,
+        idData: this.settings.idData,
         body: entities,
+        encrypted: this.settings.encrypted,
       });
 
       return {
@@ -51,7 +49,7 @@ export class BaseService<T, S = unknown> {
         entities,
       };
     } catch (error) {
-      const entities = await this.service();
+      const entities = await this.settings.service();
       this.redisCacheHandler.killRedis();
 
       return {

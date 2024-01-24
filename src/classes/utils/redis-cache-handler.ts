@@ -2,6 +2,8 @@ import { createClient } from "redis";
 import { EncryptionHandler } from "./encryption-handler";
 
 interface ISetRedisStateParams<T> {
+  idApi: string;
+  idData: string;
   body: T;
   encrypted?: boolean;
 }
@@ -59,22 +61,28 @@ export class RedisCacheHandler<T> extends EncryptionHandler {
     return object;
   }
 
-  public async getRedisState<T>(key: string): Promise<T> {
-    const entryPoint = await this.getEntryPoint(key);
+  public async getRedisState<T>(
+    idApi: string,
+    idData: string
+  ): Promise<{ sha: string; data: T }> {
+    const sha = this.generateSHA(`${idApi}-${idData}`);
+    const entryPoint = await this.getEntryPoint(sha);
     const isEncrypted = await this.isEncrypted(entryPoint);
 
     if (isEncrypted) {
-      const result = await this.decrypt<T>(entryPoint ?? "");
-      return result;
+      const data = await this.decrypt<T>(entryPoint ?? "");
+      return { sha, data };
     }
-    return JSON.parse(entryPoint as string) as T;
+    return { sha, data: JSON.parse(entryPoint as string) };
   }
 
   public async setRedisState({
+    idApi,
+    idData,
     body,
     encrypted = false,
   }: ISetRedisStateParams<T>): Promise<string> {
-    const SHA = this.generateSHA(body);
+    const SHA = this.generateSHA(`${idApi}-${idData}`);
     if (encrypted) {
       const encryptBody = await this.encrypt(body);
       this.setEntryPoint(SHA, encryptBody);
